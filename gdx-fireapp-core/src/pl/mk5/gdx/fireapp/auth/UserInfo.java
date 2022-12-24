@@ -16,6 +16,8 @@
 
 package pl.mk5.gdx.fireapp.auth;
 
+import pl.mk5.gdx.fireapp.promises.Promise;
+
 /**
  * POJO class that holds information about Firebase user.
  */
@@ -25,6 +27,7 @@ public class UserInfo {
     private String displayName;
     private String photoUrl;
     private String email;
+    private Promise<String> token;
     private boolean isEmailVerified;
     private boolean isAnonymous;
 
@@ -56,6 +59,15 @@ public class UserInfo {
      */
     public String getProviderId() {
         return providerId;
+    }
+
+    /**
+     * Gets JWT token.
+     *
+     * @return Promise Firebase user JWT token
+     */
+    public Promise<String> getToken() {
+        return token;
     }
 
     /**
@@ -130,6 +142,17 @@ public class UserInfo {
         }
 
         /**
+         * Sets firebase user JWT token.
+         *
+         * @param token User JWT token
+         * @return this {@code Builder} instance
+         */
+        public Builder setToken(Promise<String> token) {
+            inst.token = token;
+            return this;
+        }
+
+        /**
          * Sets firebase user display name.
          *
          * @param displayName Display name
@@ -198,6 +221,7 @@ public class UserInfo {
             inst.photoUrl = userInfo.photoUrl;
             inst.uid = userInfo.uid;
             inst.providerId = userInfo.providerId;
+            inst.token = userInfo.token;
             return this;
         }
 

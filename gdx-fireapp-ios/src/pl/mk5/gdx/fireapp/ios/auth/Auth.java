@@ -22,6 +22,7 @@ import org.robovm.objc.block.VoidBlock2;
 import org.robovm.pods.firebase.auth.FIRAuth;
 import org.robovm.pods.firebase.auth.FIRAuthDataResult;
 import org.robovm.pods.firebase.auth.FIRUser;
+import org.robovm.apple.foundation.NSString;
 
 import pl.mk5.gdx.fireapp.auth.GdxFirebaseUser;
 import pl.mk5.gdx.fireapp.auth.UserInfo;
@@ -43,8 +44,20 @@ public class Auth implements AuthDistribution {
      */
     @Override
     public GdxFirebaseUser getCurrentUser() {
-        FIRUser firUser = FIRAuth.auth().getCurrentUser();
+        final FIRUser firUser = FIRAuth.auth().getCurrentUser();
         if (firUser == null) return null;
+        final Promise<String> promiseJWT = FuturePromise.when(new Consumer<FuturePromise<String>>() {
+            @Override
+            public void accept(final FuturePromise<String> promise) {
+                firUser.getIDToken(new VoidBlock2<NSString, NSError>() {
+                    @Override
+                    public void invoke(NSString token, NSError error) {
+                        promise.doComplete(token.toString());
+                    }
+                });
+            }
+        });
+
         UserInfo.Builder builder = new UserInfo.Builder();
         builder.setDisplayName(firUser.getDisplayName())
                 .setPhotoUrl(firUser.getPhotoURL() != null ? firUser.getPhotoURL().getPath() : null)
@@ -52,7 +65,8 @@ public class Auth implements AuthDistribution {
                 .setUid(firUser.getUid())
                 .setIsEmailVerified(firUser.isEmailVerified())
                 .setIsAnonymous(firUser.isAnonymous())
-                .setEmail(firUser.getEmail());
+                .setEmail(firUser.getEmail())
+                .setToken(promiseJWT);
         return GdxFirebaseUser.create(builder.build());
     }
 

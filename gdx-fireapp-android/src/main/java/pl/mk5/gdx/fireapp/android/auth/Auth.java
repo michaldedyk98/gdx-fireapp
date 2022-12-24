@@ -43,8 +43,14 @@ public class Auth implements AuthDistribution {
      */
     @Override
     public GdxFirebaseUser getCurrentUser() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return null;
+        final Promise<String> promiseJWT = FuturePromise.when(new Consumer<FuturePromise<String>>() {
+            @Override
+            public void accept(final FuturePromise<String> promise) {
+                promise.doComplete(user.getIdToken(false).getResult().getToken());
+            }
+        });
         UserInfo.Builder builder = new UserInfo.Builder();
         builder.setDisplayName(user.getDisplayName())
                 .setPhotoUrl(user.getPhotoUrl() != null ? user.getPhotoUrl().getPath() : null)
@@ -52,7 +58,8 @@ public class Auth implements AuthDistribution {
                 .setUid(user.getUid())
                 .setIsEmailVerified(user.isEmailVerified())
                 .setIsAnonymous(user.isAnonymous())
-                .setEmail(user.getEmail());
+                .setEmail(user.getEmail())
+                .setToken(promiseJWT);
         return GdxFirebaseUser.create(builder.build());
     }
 
